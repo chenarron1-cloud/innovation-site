@@ -1,0 +1,139 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #FDFBF8;
+  --foreground: #1A1208;
+  --card: #FFFFFF;
+  --card-foreground: #1A1208;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1208;
+  --primary: #2825A8;
+  --primary-foreground: #FFFFFF;
+  --secondary: #ECEAFF;
+  --secondary-foreground: #2825A8;
+  --muted: #F6F3EE;
+  --muted-foreground: #6B6155;
+  --accent: #ECEAFF;
+  --accent-foreground: #2825A8;
+  --destructive: #DC2626;
+  --destructive-foreground: #FFFFFF;
+  --border: #E4DDD3;
+  --input: #E4DDD3;
+  --ring: #2825A8;
+  --radius: 0.75rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #FDFBF8;
+  color: #1A1208;
+  font-family: 'Noto Sans TC', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Word break for Chinese text */
+p, h1, h2, h3, h4, h5, h6, span, li {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F6F3EE;
+}
+::-webkit-scrollbar-thumb {
+  background: #AEAAE8;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2825A8;
+}
+
+/* Focus ring */
+*:focus-visible {
+  outline: 2px solid #2825A8;
+  outline-offset: 2px;
+}
+
+/* Prose styles for article content */
+.prose {
+  color: #1A1208;
+  line-height: 1.8;
+  font-size: 16px;
+}
+
+.prose h2 {
+  font-size: 24px;
+  font-weight: 500;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  color: #1A1208;
+}
+
+.prose h3 {
+  font-size: 18px;
+  font-weight: 500;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  color: #1A1208;
+}
+
+.prose p {
+  margin-bottom: 1.25rem;
+  color: #6B6155;
+}
+
+.prose a {
+  color: #2825A8;
+  text-decoration: underline;
+}
+
+.prose ul, .prose ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.prose li {
+  margin-bottom: 0.5rem;
+  color: #6B6155;
+}
+
+.prose blockquote {
+  border-left: 4px solid #AEAAE8;
+  padding-left: 1rem;
+  color: #6B6155;
+  font-style: italic;
+  margin: 1.5rem 0;
+}
+
+.prose code {
+  background: #ECEAFF;
+  color: #2825A8;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.875em;
+}
+
+.prose pre {
+  background: #1A1208;
+  color: #FDFBF8;
+  padding: 1.25rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}

@@ -1,0 +1,266 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  free
+  pro
+  diamond
+  admin
+}
+
+enum ArticleStatus {
+  draft
+  published
+  scheduled
+}
+
+enum WorkStatus {
+  pending
+  approved
+  rejected
+  featured
+}
+
+enum WorkCategory {
+  planning
+  marketing
+  product
+  course
+  sales
+  other
+}
+
+enum BadgeType {
+  monthly_champion
+  pioneer
+  featured
+}
+
+enum WishStatus {
+  pending
+  in_progress
+  completed
+  declined
+}
+
+// ================== Auth / Users ==================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model User {
+  id               String        @id @default(cuid())
+  name             String?
+  email            String?       @unique
+  emailVerified    DateTime?
+  image            String?
+  role             UserRole      @default(free)
+  title            String?       // 職稱
+  stripeCustomerId String?       @unique
+  subscriptionId   String?       @unique
+  subscriptionEnd  DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  accounts         Account[]
+  sessions         Session[]
+  articles         Article[]
+  works            Work[]
+  votes            Vote[]
+  wishes           Wish[]
+  wishVotes        WishVote[]
+  badges           Badge[]
+  auditLogs        AuditLog[]
+}
+
+// ================== Articles ==================
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  slug     String    @unique
+  articles Article[]
+}
+
+model Article {
+  id          String        @id @default(cuid())
+  title       String
+  slug        String        @unique
+  excerpt     String?
+  content     String        @db.Text
+  coverImage  String?
+  isPremium   Boolean       @default(false)
+  status      ArticleStatus @default(draft)
+  metaTitle   String?
+  metaDesc    String?
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  authorId    String
+  categoryId  String?
+  author      User          @relation(fields: [authorId], references: [id])
+  category    Category?     @relation(fields: [categoryId], references: [id])
+}
+
+// ================== Courses ==================
+
+model Course {
+  id          String     @id @default(cuid())
+  title       String
+  slug        String     @unique
+  description String?    @db.Text
+  coverImage  String?
+  isPremium   Boolean    @default(false)
+  price       Float?
+  status      String     @default("draft")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  chapters    Chapter[]
+}
+
+model Chapter {
+  id        String   @id @default(cuid())
+  title     String
+  courseId  String
+  order     Int
+  videoUrl  String?
+  content   String?  @db.Text
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+// ================== Tools ==================
+
+model Tool {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?  @db.Text
+  category    String?
+  iconUrl     String?
+  isPremium   Boolean  @default(false)
+  freeLimit   Int      @default(3)
+  prompt      String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ================== Works (AI 作品投票) ==================
+
+model Work {
+  id          String       @id @default(uuid())
+  userId      String
+  title       String       @db.VarChar(120)
+  description String       @db.Text
+  category    WorkCategory
+  imageUrl    String       @db.Text
+  tags        String[]
+  status      WorkStatus   @default(pending)
+  voteCount   Int          @default(0)
+  viewCount   Int          @default(0)
+  isFeatured  Boolean      @default(false)
+  monthYear   String       @db.VarChar(7) // "2026-04"
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  approvedAt  DateTime?
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  votes       Vote[]
+  badges      Badge[]
+
+  @@index([status, monthYear, voteCount])
+}
+
+model Vote {
+  id        String   @id @default(uuid())
+  workId    String
+  userId    String
+  createdAt DateTime @default(now())
+  work      Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workId, userId])
+}
+
+model Badge {
+  id        String    @id @default(uuid())
+  userId    String
+  badgeType BadgeType
+  workId    String?
+  monthYear String?   @db.VarChar(7)
+  awardedAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  work      Work?     @relation(fields: [workId], references: [id])
+}
+
+// ================== Wishpool ==================
+
+model Wish {
+  id        String     @id @default(cuid())
+  title     String
+  content   String     @db.Text
+  status    WishStatus @default(pending)
+  userId    String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id])
+  votes     WishVote[]
+}
+
+model WishVote {
+  id        String   @id @default(cuid())
+  wishId    String
+  userId    String
+  createdAt DateTime @default(now())
+  wish      Wish     @relation(fields: [wishId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([wishId, userId])
+}
+
+// ================== Admin ==================
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  entity    String
+  entityId  String?
+  details   String?  @db.Text
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
